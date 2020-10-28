@@ -1,0 +1,1 @@
+Provisioning Virtual Machine in  VMWare network and Register in Red Hat Satellite

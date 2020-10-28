@@ -1,0 +1,9 @@
+---
+- name: Registra Host no Satellite
+  hosts: new_hosts
+  gather_facts: yes
+  become: true
+#  connection: local
+
+  roles:
+    - satellite_register

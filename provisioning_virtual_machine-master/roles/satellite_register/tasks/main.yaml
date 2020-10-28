@@ -1,0 +1,103 @@
+---
+# tasks file for satellite_register
+
+- name: Aguardando 1min para o inicio da Virtual Machine
+  wait_for:
+    timeout: 60
+
+- name: Criando chave do foreman para o usuário s_ansible
+  authorized_key:
+    user: s_ansible
+    state: present
+    key: '{{ item }}'
+  with_file:
+    - files/id_rsa_foreman_proxy.pub
+
+- name: Download script bootstrap.py do servidor {{ satellite_fqdn }} 
+  get_url:
+    url: "http://{{ satellite_fqdn }}/pub/bootstrap.py"
+    dest: /usr/bin/bootstrap.py
+  
+- name: Tornar o script bootstrap.py executável
+  file:
+    path: /usr/bin/bootstrap.py
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Limpar Informações de subscrição do Servidor {{ ansible_fqdn }} 
+  command: "/usr/bin/subscription-manager clean" 
+
+- name: Remover arquivo de repositório media.repo
+  file:
+    state: absent
+    path: "/etc/yum.repos.d/media.repo"
+    
+- name: Desabilitar repositórios existentes
+  yum:
+    disablerepo: "*"
+    
+- name: Registrar servidor {{ ansible_fqdn }} no Satellite 6
+  command: "/usr/bin/python3 /usr/bin/bootstrap.py -l {{ admin_user }} -p {{ admin_pass }} -s {{ satellite_fqdn }} -o {{ org }} -L {{ loc }} --fqdn='{{ ansible_fqdn }}' --operatingsystem='{{ ansible_distribution }} {{ ansible_distribution_version }}' -g {{ hostgroup }} -a {{ activationkey }} --enablerepos={{ repo }} --add-domain {{ domain }} -f --rex-user={{ sat_user }}"
+
+- name: Mudar o executável do Python
+  command: "alternatives --set python /usr/bin/python3"
+  
+- name: Instalando pacotes do Katello e do Insights no servidor {{ ansible_fqdn }}
+  yum:
+    name:
+      - katello-host-tools
+      - katello-host-tools-tracer  
+      - katello-agent
+      - insights-client
+    state: latest
+  register: command_result
+  ignore_errors: True
+
+- name: Registrar host {{ ansible_fqdn }} no insights
+  command: "/usr/bin/insights-client --register --force-reregister --enable-schedule"
+  
+- name: Atualizar os pacotes do servidor {{ ansible_fqdn }}
+  yum:
+    name: '*'
+    state: latest 
+
+- name: Gerando primeiro relatório do Openscap em {{ ansible_fqdn }}
+  command: "/usr/bin/foreman_scap_client 3"
+
+- name: Enviar e-mail com dados do servidor
+  mail:
+    host: smtp.dpf.gov.br
+    port: 25
+    username: s_ansible
+    password: "{{ s_ansible_pass }}"
+    subject: Host {{ ansible_fqdn }} provisionado e registrado no Satellite
+    subtype: html
+    body: '
+<h2>Host {{ ansible_fqdn }} provisionado e registrado no Satellite</h2>
+<h2>Segue detalhamento do servidor:</h2>
+<table class="editorDemoTable">
+<tbody>
+<tr><td>Nome</td>
+<td>{{ ansible_fqdn }}</td></tr>
+<tr><td>IP</td>
+<td>{{ network_ip_address }}</td></tr>
+<tr><td>Memoria</td>
+<td>{{ vm_memory_size }} GB</td></tr>
+<tr><td>vCPU</td>
+<td>{{ vm_cpu_size }}</td></tr>
+<tr><td>Versão SO</td>
+<td>{{ ansible_distribution }} {{ ansible_distribution_version }}</td></tr>
+<tr><td>Template utilizado</td>
+<td>{{ vmware_template }}</td></tr>
+</tbody>
+</table>
+'
+
+    from: s_ansible@dpf.gov.br (Conta Serviço Ansible)
+    to:
+    - Julio Barreto <jbarreto@redhat.com>
+    
+- name: Reiniciando servidor {{ ansible_fqdn }}
+  command: "/usr/sbin/shutdown -r"
+

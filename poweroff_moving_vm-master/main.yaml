@@ -1,0 +1,21 @@
+- name: Automacao Desligamento e Moving Virtual Machine Provisionada com erro
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: Set powerstate of a virtual machine to poweroff by using name
+      vmware_guest:
+        validate_certs: no
+        name: "{{ vm_hostname }}"
+        state: poweredoff
+      delegate_to: localhost
+
+    - name: Moving Virtual Machine
+      vmware_guest_move:
+        datacenter: "{{ vmware_datacenter }}"
+        validate_certs: no
+        name: "{{ vm_hostname }}"
+        dest_folder: "{{ vmware_datacenter }}/vm/PRODUCAO/AnsibleTower/poweroff-teste"
+      delegate_to: localhost
+

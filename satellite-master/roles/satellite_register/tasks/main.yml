@@ -1,0 +1,47 @@
+---
+# tasks file for satellite_register
+
+- name: Download do script bootstrap.py do servidor {{ satellite_fqdn }} 
+  get_url:
+    url: "http://{{ satellite_fqdn }}/pub/bootstrap.py"
+    dest: /usr/bin/bootstrap.py
+  
+- name: Tornar o script bootstrap.py executavel
+  file:
+    path: /usr/bin/bootstrap.py
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Limpar Informações do Subscription Manager do Servidor
+  command: "/usr/bin/subscription-manager clean"
+
+- name: Desabilitar todos os Repositórios
+  yum:
+    disablerepo: "*"
+    
+- name: Registrar servidor {{ ansible_fqdn }} no servidor do Satellite
+  command: "/usr/bin/python3 /usr/bin/bootstrap.py -l {{ admin_user }} -p {{ admin_pass }} -s {{ satellite_fqdn }} -o {{ org }} -L {{ loc }} --fqdn='{{ ansible_fqdn }}' --operatingsystem='{{ ansible_distribution }} {{ ansible_distribution_version }}' -g {{ hostgroup }} -a {{ activationkey }} --enablerepos={{ repo }} --add-domain {{ domain }} -f --rex-user={{ sat_user }}"
+
+- name: Instalando pacotes do Katello e Insights
+  yum:
+    name:
+      - katello-host-tools
+      - katello-host-tools-tracer  
+      - katello-agent
+      - insights-client
+    state: latest
+  register: command_result
+  ignore_errors: True
+
+- name: Registrar host {{ ansible_fqdn }} no Insights
+  command: "/usr/bin/insights-client --register --force-reregister --enable-schedule"
+  
+- name: Atualizar os pacotes do Servidor {{ ansible_fqdn }}
+  yum:
+    name: '*'
+    state: latest 
+
+- name: Restart do servidor
+  command: "/usr/sbin/shutdown -r"
+

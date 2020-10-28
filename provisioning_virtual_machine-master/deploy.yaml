@@ -1,0 +1,32 @@
+---
+- name: Automacao Provisionamento Virtual Machines DPF
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  roles:
+    - vmware
+
+
+#- name: Add host inventory
+#  hosts: all
+#  tasks:
+#    - name: Wait 2min for VMs to start
+#      wait_for:
+#        timeout: 120
+#    - name: Add host
+#      add_host:
+#        name: "{{ network_ip_address }}"
+#        groups: new-hosts
+
+- name: Registra Host no Satellite
+  hosts: new-hosts
+  gather_facts: true
+  remote_user: s_ansible
+  become: True
+  become_method: sudo
+  become_user: root
+  #sudo_user: root
+  #sudo_exe: sudo
+  #ask_pass: True
+  roles:
+    - satellite_register

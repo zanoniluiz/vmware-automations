@@ -1,0 +1,19 @@
+---
+# vars file for satellite_register
+
+katello_ca_consumer_rpm: "katello-ca-consumer-sdf0424.pf.gov.br-1.0-1.noarch"
+satellite_fqdn: "sdf0424.pf.gov.br"
+satellite_hostname: "sdf0424"
+domain: "pf.gov.br"
+satellite_port: "443"
+satellite_ip: "172.21.0.52"
+admin_user: "admin"
+admin_pass: "{{ vault_admin_pass }}"
+s_ansible_pass: "{{ vault_ansible_pass }}"
+sat_user: "s_ansible"
+org: "DPF"
+loc: "CTI"
+hostgroup: "HG_RHEL8_PROD"
+activationkey: "AK_VDC,AK_RHEL8_PROD"
+versao_rhel: "RedHat 8.1"
+repo: "satellite-tools-6.6-for-rhel-8-x86_64-rpms"

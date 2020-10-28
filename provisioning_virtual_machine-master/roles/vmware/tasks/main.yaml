@@ -1,0 +1,54 @@
+---
+- name: Criacao Virtual Machine
+  vmware_guest:
+    datacenter: "{{ vm_datacenter }}"
+    cluster: "{{ vm_cluster }}"
+    name: "{{ vm_name }}"
+    template: "{{ vm_template }}"
+    datastore: "{{ vm_datastore }}"
+#    disk:
+#    - size_gb: "{{ vm_disk }}"
+#      type: thin
+#      datastore: "{{ vm_datastore }}"
+    hardware:
+      memory_gb: "{{ vm_memory }}"
+      num_cpus: "{{ vm_cpu }}"
+      num_cpu_cores_per_socket: 1
+      memory_reservation_lock: False
+      version: 14 # Hardware version of virtual machine
+    networks:
+      - name: "{{ vm_network }}"
+        domain: pf.gov.br
+        start_connected: True
+        connected: True
+        device_type: vmxnet3
+        ip: "{{ vm_ip }}"
+        netmask: "{{ vm_mask }}"
+        gateway: "{{ vm_gateway }}"
+        type: static
+        dns_servers:
+          - 10.2.64.8
+          - 10.2.64.9
+    customization:
+      hostname: "{{ vm_name }}"
+      #fullname: "{{ vm_name + '.' + vm_domain }}"
+      dns_servers:
+          - 10.2.64.8
+          - 10.2.64.9
+      dns_suffix:
+        - "{{ vm_domain }}"
+    validate_certs: False
+    folder: "{{ vm_folder }}"
+    state: poweredon
+    wait_for_ip_address: no
+  delegate_to: localhost
+  register: deploy
+
+- name: Add Host
+  add_host:
+    name: '{{ network_ip_address }}'
+    groups: new-hosts
+
+- name: Wait 1min for VMs to start
+  wait_for:
+    timeout: 60

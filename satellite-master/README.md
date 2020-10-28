@@ -1,0 +1,1 @@
+Registrar servidores no Satellite
