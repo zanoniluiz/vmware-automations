@@ -6,10 +6,6 @@
     name: "{{ vm_name }}"
     template: "{{ vm_template }}"
     datastore: "{{ vm_datastore }}"
-#    disk:
-#    - size_gb: "{{ vm_disk }}"
-#      type: thin
-#      datastore: "{{ vm_datastore }}"
     hardware:
       memory_gb: "{{ vm_memory }}"
       num_cpus: "{{ vm_cpu }}"
@@ -27,14 +23,13 @@
         gateway: "{{ vm_gateway }}"
         type: static
         dns_servers:
-          - 10.2.64.8
-          - 10.2.64.9
+          - "{{ dns_server1 }}"
+          - "{{ dns_server2 }}"
     customization:
       hostname: "{{ vm_name }}"
-      #fullname: "{{ vm_name + '.' + vm_domain }}"
       dns_servers:
-          - 10.2.64.8
-          - 10.2.64.9
+          - "{{ dns_server1 }}"
+          - "{{ dns_server2 }}"
       dns_suffix:
         - "{{ vm_domain }}"
     validate_certs: False
