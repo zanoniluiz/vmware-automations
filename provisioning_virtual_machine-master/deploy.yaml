@@ -1,22 +1,11 @@
 ---
-- name: Automacao Provisionamento Virtual Machines DPF
+- name: Automacao Provisionamento Virtual Machines em ambientes VMWARE
   hosts: localhost
   gather_facts: no
   connection: local
   roles:
     - vmware
 
-
-#- name: Add host inventory
-#  hosts: all
-#  tasks:
-#    - name: Wait 2min for VMs to start
-#      wait_for:
-#        timeout: 120
-#    - name: Add host
-#      add_host:
-#        name: "{{ network_ip_address }}"
-#        groups: new-hosts
 
 - name: Registra Host no Satellite
   hosts: new-hosts
