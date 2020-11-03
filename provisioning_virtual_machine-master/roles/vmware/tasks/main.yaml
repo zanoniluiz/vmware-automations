@@ -14,7 +14,7 @@
       version: 14 # Hardware version of virtual machine
     networks:
       - name: "{{ vm_network }}"
-        domain: pf.gov.br
+        domain: "{{ vm_domain }}"
         start_connected: True
         connected: True
         device_type: vmxnet3
